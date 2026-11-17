@@ -1,13 +1,13 @@
 # Thông tin học viên
 
-- Họ và tên: <<>>
-- MSHV: <<>>
-- Lớp (L2 / L3 / khác): <<>>
-- Tài khoản GitHub: <<>>
-- Repo bài nộp (URL): <<>>
-- Commit chốt bài (hash): <<>>
-- Máy: <<hệ điều hành, GPU (CUDA / MPS / không có)>>
-- CVAT (Docker): <<phiên bản, ví dụ v2.81.0>>
+- Họ và tên: Lê Tuấn Anh
+- MSHV: 2A202604064
+- Lớp (L2 / L3 / khác): L2B
+- Tài khoản GitHub: letuananhcntt05-star
+- Repo bài nộp (URL): https://github.com/letuananhcntt05-star/K5-L23-Day08-2A202604064-LeTuanAnh-AIPrelabel
+- Commit chốt bài (hash): (điền cuối bài)
+- Máy: Windows, NVIDIA GeForce RTX 4050 Laptop GPU 6 GB (CUDA, torch 2.6.0+cu124)
+- CVAT (Docker): v2.81.0
 
 ## Kết quả tóm tắt (điền cuối bài; số lấy từ `submission/qc/*`, kèm mẫu số)
 
