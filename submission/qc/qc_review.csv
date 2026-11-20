@@ -1,0 +1,9 @@
+image,object_id,error_type,reviewer,note
+img_003.jpg,24,sai_lop,LeTuanAnh,"xe tải thùng kín ở xa bên trái bị gán three_wheeler; đúng là truck"
+img_003.jpg,25,sai_lop,LeTuanAnh,"xe tải thùng kín ở xa bên trái bị gán three_wheeler; đúng là truck"
+img_003.jpg,2,sai_vi_tri_kich_thuoc,LeTuanAnh,"box xe ba gác chở rau thiếu phần mui: mép trái (mui chìa ra tới x~245) và mép trên (y~105) nằm ngoài box"
+img_006.jpg,,khong,LeTuanAnh,"không thấy lỗi rõ; cụm người ngồi ăn bên phải nhiều box sát nhau, không xác định được box trùng"
+img_014.jpg,,khong,LeTuanAnh,
+img_031.jpg,531,thua,LeTuanAnh,"box person ở góc trên trái là áo khoác treo trên giá, không phải người"
+img_031.jpg,,bo_sot,LeTuanAnh,"thiếu box person: người đàn ông ngồi ghế nhựa sát mép phải (x~903-1024, y~206-516); đây cũng là bẫy missing bị lọt"
+img_035.jpg,587,sai_vi_tri_kich_thuoc,LeTuanAnh,"box xích lô chỉ bao phần thân dưới, thiếu phần mui (mui bắt đầu từ y~428)"

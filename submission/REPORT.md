@@ -39,8 +39,8 @@
 
 ## 4. Máy có đáng dùng không?
 
-- Thời gian (từ `time_log.csv`, **cả hai đều là ước lượng, không bấm đồng hồ**): gán tay 15 phút / 4 ảnh ≈ **3.8 phút/ảnh** (15/44 ≈ 0.34 phút/vật) vs duyệt có pre-label 87 phút / 24 ảnh ≈ **3.6 phút/ảnh** (87/603 ≈ 0.14 phút/vật). Thiên lệch: tôi gán gold trước nên đã quen cảnh; ảnh batch dày hơn gold (≈ 25 vật/ảnh so với ≈ 11 vật/ảnh); và lúc duyệt Claude đã đánh dấu lỗi trước, nên thời gian duyệt thấp hơn một người tự duyệt. Vì vậy so sánh tốc độ chỉ là tham khảo.
-- Kết luận: **có, nhưng chỉ cho các lớp COCO phổ biến** (`person`, `motorbike`, `car`): recall trên gold 37/41 = 90.2% và thời gian trên mỗi vật thấp hơn gán tay (0.14 so với 0.34 phút/vật), với điều kiện phải xoá kỹ box thừa (precision trên gold chỉ 52.9%). **Không đáng tin cho `three_wheeler`**: 19/43 box YOLOE bị xoá, nên chỉ dùng làm gợi ý và phải duyệt từng box.
+- Thời gian (từ `time_log.csv`, **cả hai đều là ước lượng, không bấm đồng hồ**): gán tay 15 phút / 4 ảnh ≈ **3.8 phút/ảnh** (15/41 ≈ 0.37 phút/vật) vs duyệt có pre-label 87 phút / 24 ảnh ≈ **3.6 phút/ảnh** (87/603 ≈ 0.14 phút/vật). Thiên lệch: tôi gán gold trước nên đã quen cảnh; ảnh batch dày hơn gold (603/24 ≈ 25 vật/ảnh so với 41/4 ≈ 10 vật/ảnh); và lúc duyệt Claude đã đánh dấu lỗi trước, nên thời gian duyệt thấp hơn một người tự duyệt. Vì vậy so sánh tốc độ chỉ là tham khảo.
+- Kết luận: **có, nhưng chỉ cho các lớp COCO phổ biến** (`person`, `motorbike`, `car`): recall trên gold 37/41 = 90.2% và thời gian trên mỗi vật thấp hơn gán tay (0.14 so với 0.37 phút/vật), với điều kiện phải xoá kỹ box thừa (precision trên gold chỉ 52.9%). **Không đáng tin cho `three_wheeler`**: 19/43 box YOLOE bị xoá, nên chỉ dùng làm gợi ý và phải duyệt từng box.
 - **Ba quy tắc giảm thiên kiến của bạn** (mỗi quy tắc kiểm tra được bằng số hoặc việc làm):
   1. Ẩn nhãn máy và đếm vật trước ở **24/24 ảnh**, ghi số đếm mỗi ảnh vào sổ nháp; sau duyệt so số đếm với số box trong `batch_reviewed.json` (kiểm bằng sổ ghi: đủ 24 dòng).
   2. Với lớp ngưỡng thấp (`person` = 0.15): lọc các box có `conf` < 0.3 và kiểm **từng box**; kiểm bằng `review_stats`: tỉ lệ deleted của `person` ở batch phải gần tỉ lệ box sai của máy trên gold, không phải 7/375 như lần này.
@@ -48,37 +48,32 @@
 
 ## 5. Mask SAM cho 3 vật (Part 5)
 
-| Ảnh | SAM (phiên bản) | Số click | Mask gồm người lái / hàng hoá? | Lỗi quan sát | File trong `masks/` |
+| Ảnh | SAM (phiên bản) | Số click | Mask có gồm người lái / hàng hoá? | Lỗi quan sát | File trong `masks/` |
 |---|---|---|---|---|---|
-| <<img_0xx>> | <<>> | <<>> | <<>> | <<>> | <<>> |
+| img_013 | SAM 2.1 base (`sam2.1_b.pt`) | 3 (2 dương: thân xe, mui; 1 âm: người lái) | **Có, một phần**: 1 click âm chỉ loại được phần áo người lái; chân, bàn chân, tay và mặt người lái vẫn bị tô | Mask bám sát mui, bánh, cản sau; nhưng **lan sang người và ghế ở quán phía sau** khi nhìn qua khung xe hở | `tuktuk_img013_sam2.jpg` |
+| img_004 | SAM 2.1 base (`sam2.1_b.pt`) | 3 (2 dương: thân xe, sàn; 1 âm: người đứng giữa 2 xe) | **Không**: xe không có người lái; click âm loại được người đứng cạnh. Bình gas / thùng đỏ gắn trên xe được tô, đúng vì là một phần của xe | Mask trọn mui, thân, 3 bánh; lấn một ít xuống bóng đổ dưới gầm trước (khoảng x 650–740, y 545–565) | `tuktuk_img004_sam2.jpg` |
+| img_017 | SAM 2.1 base (`sam2.1_b.pt`) | 3 (2 dương: ghế, thân xe; 1 âm) | **Không**: xe không có người. Click âm (645, 355) lại rơi đúng lên mui xe nên không loại trừ được gì: toạ độ mẫu không khớp vật cần loại | Mask bám tốt mui, thân, bánh; tuk-tuk phía sau không bị tô; vùng quầy hàng nhìn xuyên qua khung hở bị tô một phần | `tuktuk_img017_sam2.jpg` |
 
-- Đối chiếu guideline mục 4.2: quy tắc nào giúp, quy tắc nào thiếu? <<>>
-- *(Tuỳ chọn)* Interactor SAM trong CVAT: làm được / không (lỗi gì, đã thử gì); khác gì offline: <<>>
+- Đối chiếu guideline mục 4.2: quy tắc "polygon chỉ bao phần nhìn thấy của vật" và "người là `person` riêng" giúp xác định mask img_013 **sai**: mask xe không được gồm người lái và những gì nhìn xuyên qua khung xe. Quy tắc còn thiếu: với xe có khung hở (tuk-tuk, xích lô), vùng nhìn xuyên qua khung có thuộc mask xe không. Đây là câu hỏi mở số 5 (kính / cửa sổ xe) mà v1.1 chưa chốt. Bài học: với xe có người lái, một click âm là không đủ; cần đặt click âm lên đầu, thân và chân người lái, và thêm click âm vào vùng nền nhìn qua khung.
+- *(Tuỳ chọn)* Interactor SAM trong CVAT: không dùng được, vì CVAT Docker cài mặc định chưa có serverless (Nuclio), menu Models trống.
 
 ## 6. Calibration (Part 6)
 
-- Số quyết định: <<>> (`calibration_decisions.csv`); quan trọng nhất (dẫn `CAL-xx`): <<>>
-- Quy tắc mới đã vào `guideline_v1.1_calibrated.md`: <<>>
-- Nguyên nhân gốc: <<guideline mơ hồ / chưa nắm quy tắc / máy>>
+- Số quyết định: **7** (`calibration_decisions.csv`): 3 `loi_may`, 3 `cau_hoi_mo`, 1 `bay_lot`. Quan trọng nhất: **CAL-05** (một vật chỉ có một box), vì box trùng là lỗi máy phổ biến nhất ở lớp `three_wheeler` (19/43 box YOLOE bị xoá) và vẫn còn sót trong nhãn đã nộp (img_010, img_013).
+- Quy tắc mới đã vào `guideline_v1.1_calibrated.md`: chốt câu hỏi mở 4 (người trong tuk-tuk), 6 (box chồng nhau), 7 (không đặt mức `conf` tối thiểu); tuk-tuk luôn là `three_wheeler`; bán tải là `car`; `three_wheeler` phải thấy bánh và khung xe. Câu 1, 2, 3, 5 chưa chốt vì chưa có ảnh ví dụ rõ.
+- Nguyên nhân gốc: **máy** (CAL-01, 02, 04: sai lớp của YOLO26, nhận nhầm của YOLOE); **guideline mơ hồ** (CAL-03, 05, 06: câu hỏi mở của v1.0); **tôi làm sai** (CAL-07: bẫy lọt do không phóng to vật nhỏ, vật sát mép; và ở gold img_001 tôi từng đổi bán tải theo máy). Với lỗi của tôi thì không đổi quy tắc nhãn, chỉ siết checklist.
 
 ## 7. QC và quyết định (Part 6)
 
-- Mẫu: <<n>> ảnh (<<m>> ảnh `can_review` + <<k>> ngẫu nhiên, seed 42); người kiểm: bạn (**hạn chế**: bạn vừa là người duyệt).
-- Lỗi theo **đối tượng**: <<.../... = ...%>> · theo **ảnh**: <<.../... = ...%>> (ngưỡng Release ≤ 2%)
-- Top lỗi (trong: bỏ sót, thừa, sai lớp, sai vị trí/kích thước, sai thuộc tính, sai mask) + một ảnh ví dụ mỗi loại: <<>>
-- **Giới hạn mẫu nhỏ** (cận trên 95% trong `qc_report_auto.md`): <<>>
-- Script kiểm được / không kiểm được (ví dụ ôm sát, cùng bỏ sót với máy, theo checklist thật): <<>>
+- Mẫu: **5** ảnh (0 ảnh `can_review` vì không box nào được tick + 5 ngẫu nhiên, `qc_sample.py --n 5 --seed 42`), 117 đối tượng: img_003, img_006, img_014, img_031, img_035.
+- Lỗi theo **đối tượng**: **6/117 = 5.1%** · theo **ảnh**: **3/5 = 60%** (img_003, img_031, img_035).
+- Top lỗi: **sai lớp** 2 (img_003: 2 xe tải ở xa bị gán `three_wheeler`), **sai vị trí / kích thước** 2 (img_003 box xe ba gác thiếu phần mui; img_035 box xích lô thiếu phần mui), **thừa** 1 (img_031 áo khoác treo bị gán `person`), **bỏ sót** 1 (img_031 người ngồi sát mép phải, cũng là bẫy lọt).
+- **Giới hạn mẫu nhỏ**: với 3/5 ảnh lỗi, cận trên 95% (Wilson) của tỉ lệ ảnh lỗi thật là 88% (`qc_report_auto.md`). Kể cả nếu mẫu 5 ảnh không có lỗi nào, cận trên vẫn khoảng 43%, nên một mẫu nhỏ như vậy **không bao giờ chứng minh được** "dưới 2%". Ở đây thì không cần chứng minh, vì mẫu đã vượt ngưỡng rõ.
+- Script kiểm được / không kiểm được: script chỉ đếm theo phiếu tôi điền bằng mắt. Nó không tự biết box có ôm sát không, không thấy vật mà cả máy lẫn tôi cùng bỏ sót, và không kiểm được tôi có làm đúng checklist hay không. Ngoài ra lúc duyệt có AI chỉ lỗi trước, nên mẫu QC đo chất lượng nhãn, không đo khả năng tự duyệt của tôi.
 
-**Quyết định: <<Release / Hold / Rework>>**, ngày <<YYYY-MM-DD>>. Lý do (đi theo Hold → Rework → Release): <<>>
-Nếu Rework / Hold, việc cần làm tiếp: <<>>
+**Quyết định: Rework**, ngày 2026-11-20. Lý do (đi theo Hold → Rework → Release): **không Hold**, vì các câu hỏi mở ảnh hưởng tới lô này (4, 6, 7) đã chốt trong v1.1 và dữ liệu không hỏng; **Rework**, vì ảnh có lỗi 3/5 = 60% > 2%, và lỗi `three_wheeler` lặp lại (sai lớp + thiếu mui chiếm 4/6 lỗi). Chưa đủ điều kiện Release.
+Việc cần làm tiếp: (1) sửa toàn bộ box `three_wheeler` theo CAL-05 (một vật một box, trùm từ mui tới bánh), ưu tiên img_003, img_008, img_010, img_013, img_017, img_023, img_035; (2) đổi 2 xe tải ở xa img_003 sang `truck`; (3) xoá box thừa và vẽ thêm người img_031; (4) duyệt lại 6 ảnh dày xe với `ignore_region` và kiểm từng box `person` có `conf` < 0.3 (CAL-06); (5) export lại, chạy lại `review_stats` và lấy mẫu QC mới.
 
 ## 8. Ghi chú cá nhân
 
-- **Dùng AI để làm bài**: dùng Claude (claude.ai)
-- **Part 4 có AI hỗ trợ** (thầy cho phép làm riêng): Claude đọc `traps_key.json` **trước khi tôi duyệt** và khoanh 12 bẫy trên ảnh; Claude soát 24 ảnh batch, đánh dấu box trùng / thừa / sai lớp / bỏ sót, tôi sửa trong CVAT theo đó và tự quyết các ca mơ hồ. Vì vậy tỉ lệ bắt bẫy và thời gian `batch_review` không phản ánh một lần tự duyệt. Claude cũng soạn nháp mục 2–4 từ `review_stats`; tôi đối chiếu từng số với `review_stats.md`.
-- Gold có bị nhiễm không: có, một phần. Lúc gán tay 4 ảnh gold tôi không xem pre-label. Sau khi chạy `threshold_sweep` lần đầu (person chỉ đạt recall tối đa 71%), nhờ phân tích so khớp tôi biết được các box gold mà máy "sót" và đã sửa: (1) img_012 chiếc SUV bị cắt mép trên gán nhầm `person` → đổi thành `car`; (2) img_036 `ignore_region` phủ lên 3 người đã vẽ riêng → thu nhỏ vùng ignore, giữ các người; (3) tick `can_review` cho người lái tuk-tuk img_012. Trong lúc sửa tôi lỡ đổi xe bán tải img_001 từ `car` sang `truck` theo nhãn máy, sau đó đổi lại `car` theo guideline mục 2 (ví dụ thiên kiến tự động hóa của chính tôi). Các sửa đổi dựa trên ảnh gốc và guideline v1.0, nhưng việc biết chỗ cần xem đến từ kết quả máy, nên số đo máy trên gold có thể lạc quan hơn.
-- Máy / GPU / CVAT dùng: Windows, NVIDIA RTX 4050 Laptop 6 GB (CUDA), Python 3.13, torch 2.6.0+cu124, ultralytics 8.4.215, CVAT v2.81.0 chạy Docker. Vướng mắc: PowerShell chặn `Activate.ps1` (sửa bằng `Set-ExecutionPolicy -Scope Process Bypass`); tài khoản CVAT cũ đã tồn tại nên dùng lại.
-- Dùng cache `data/cache/` thay vì tự chạy? Không, tự chạy toàn bộ trên GPU máy mình.
-- Lỗi / bug script đã gặp (nếu có): không gặp bug script.
-- Thời gian: quên bấm đồng hồ ở cả Part 1 và Part 4. `gold_manual` ghi theo mốc nhớ lại (18:50–19:05); `batch_review` ước lượng từ mốc mở Job (10:21) đến lúc xong (11:58), trừ ~10 phút chờ AI. Cả hai không phải số đo bằng đồng hồ.
-- Một điều bạn làm khác lần sau: <<>>
+- **Dùng AI để làm bài**: dùng Claude (claude.ai) để đọc hiểu đề và hướng dẫn thứ tự lệnh
