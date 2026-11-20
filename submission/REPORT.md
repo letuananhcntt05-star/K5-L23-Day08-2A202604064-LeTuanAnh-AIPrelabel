@@ -22,27 +22,29 @@
 
 | Trạng thái | Số | Tỉ lệ | Mẫu số |
 |---|---|---|---|
-| accepted | <<>> | <<>> | <<box máy>> |
-| edited | <<>> | <<>> | <<>> |
-| deleted | <<>> | <<>> | <<>> |
-| added | <<>> | <<>> | <<đối tượng sau duyệt>> |
+| accepted | 591 | 591/628 = 94.1% | 628 box máy |
+| edited | 4 | 4/628 = 0.6% | 628 box máy |
+| deleted | 33 | 33/628 = 5.3% | 628 box máy |
+| added | 8 | 8/603 = 1.3% | 603 đối tượng sau duyệt |
 
-- Lớp nào máy tệ nhất? Vì sao (dẫn ảnh)? <<>>
-- So với gold: precision / recall của **máy** <<>> (mẫu số: <<đối tượng gold>>)
+Đã loại 22 đối tượng quanh 12 bẫy khỏi bảng này, vì đó là lỗi nhân tạo, không phải lỗi thật của máy. Trong deleted + added có 4 trường hợp là **đổi lớp** (box đúng chỗ, sai nhãn), nên số vật máy **sót thật** chỉ khoảng 8 − 4 = 4.
+
+- Lớp nào máy tệ nhất? **`three_wheeler` (YOLOE)**: 19/43 box máy bị xoá (44%), 3/43 phải sửa. Nguyên nhân: nhiều box chồng lên cùng một xe (img_003, img_008, img_010, img_013, img_017, img_023, img_035), box trùm 2–3 xe một lúc (img_008, img_017, img_023), và gọi nhầm vật khác là xe ba bánh (quang gánh và kệ hàng ở img_014, ô che sạp ở img_009, xe máy chở rau ở img_009). Lớp `bus` có 3 added: xe buýt ở img_013, img_018 bị máy gán sai lớp nên phải vẽ lại / đổi sang `bus`.
+- So với gold: precision / recall của **máy** = 37/70 = **52.9%** (KTC 95%: 41–64%) / 37/41 = **90.2%** (KTC 95%: 77–96%) (mẫu số: 41 đối tượng gold, 70 box máy trên 4 ảnh gold). Hai con số này **lạc quan** vì ngưỡng được chọn trên chính 4 ảnh gold.
 
 ## 3. Thiên kiến tự động hóa và ảnh bẫy
 
-- Bắt bẫy: <<.../12>>; loại nào lọt: <<>>; vì sao (bạn đã bỏ bước nào của checklist)? <<>>
-- Accepted cao mà bắt bẫy thấp (hoặc ngược lại) nói gì về cách bạn duyệt? <<>>
+- Bắt bẫy: **10/12 = 83.3%** (KTC 95%: 55–95%); theo loại: loose 2/3, extra 3/3, missing 2/3, wrong_class 3/3. Lọt: **img_031 (missing)** – người ngồi sát mép phải chưa được vẽ khớp; **img_018 (loose)** – box xe máy rất nhỏ (~40 px) chưa kéo đủ sát. **Lưu ý trung thực:** tôi đã xem `traps_key.json` trước khi duyệt (theo hướng dẫn riêng của thầy) và Claude đã khoanh 12 bẫy trên ảnh, nên con số 83.3% **không đo** khả năng tự phát hiện lỗi của tôi. Dù biết trước đáp án vẫn lọt 2 bẫy, cả hai đều là vật **nhỏ hoặc sát mép ảnh**: tôi đã không phóng to khi làm bước 4 (lỏng) và bước 1 (bỏ sót) với những vật này.
+- Accepted cao mà bắt bẫy (có đáp án) cũng chưa đủ nói gì về cách duyệt: trên gold, máy có 33/70 box sai (precision 52.9%), nhưng ở batch tôi chỉ xoá 33/628 = 5.3% box máy, riêng `person` (ngưỡng 0.15) chỉ xoá 7/375. Nếu batch có tỉ lệ box sai gần với gold, thì còn **nhiều box thừa đã bị giữ lại**, nhất là ở 6 ảnh dày xe (005, 018, 021, 024, 028, 029): đây là dấu hiệu chấp nhận nhãn máy quá dễ (thiên kiến tự động hóa). Đây là suy luận, vì gold chỉ có 4 ảnh và cảnh khác batch.
 
 ## 4. Máy có đáng dùng không?
 
-- Thời gian (từ `time_log.csv`): gán tay <<... phút/ảnh>> vs duyệt <<... phút/ảnh>>. Thiên lệch (bạn gán gold trước nên đã quen cảnh): <<>>
-- Kết luận: <<có / không / chỉ cho lớp nào>>, dựa trên <<số liệu>>
+- Thời gian (từ `time_log.csv`, **cả hai đều là ước lượng, không bấm đồng hồ**): gán tay 15 phút / 4 ảnh ≈ **3.8 phút/ảnh** (15/44 ≈ 0.34 phút/vật) vs duyệt có pre-label 87 phút / 24 ảnh ≈ **3.6 phút/ảnh** (87/603 ≈ 0.14 phút/vật). Thiên lệch: tôi gán gold trước nên đã quen cảnh; ảnh batch dày hơn gold (≈ 25 vật/ảnh so với ≈ 11 vật/ảnh); và lúc duyệt Claude đã đánh dấu lỗi trước, nên thời gian duyệt thấp hơn một người tự duyệt. Vì vậy so sánh tốc độ chỉ là tham khảo.
+- Kết luận: **có, nhưng chỉ cho các lớp COCO phổ biến** (`person`, `motorbike`, `car`): recall trên gold 37/41 = 90.2% và thời gian trên mỗi vật thấp hơn gán tay (0.14 so với 0.34 phút/vật), với điều kiện phải xoá kỹ box thừa (precision trên gold chỉ 52.9%). **Không đáng tin cho `three_wheeler`**: 19/43 box YOLOE bị xoá, nên chỉ dùng làm gợi ý và phải duyệt từng box.
 - **Ba quy tắc giảm thiên kiến của bạn** (mỗi quy tắc kiểm tra được bằng số hoặc việc làm):
-  1. <<>>
-  2. <<>>
-  3. <<>>
+  1. Ẩn nhãn máy và đếm vật trước ở **24/24 ảnh**, ghi số đếm mỗi ảnh vào sổ nháp; sau duyệt so số đếm với số box trong `batch_reviewed.json` (kiểm bằng sổ ghi: đủ 24 dòng).
+  2. Với lớp ngưỡng thấp (`person` = 0.15): lọc các box có `conf` < 0.3 và kiểm **từng box**; kiểm bằng `review_stats`: tỉ lệ deleted của `person` ở batch phải gần tỉ lệ box sai của máy trên gold, không phải 7/375 như lần này.
+  3. Vật nhỏ (< 40 px) hoặc sát mép ảnh: **phóng to ≥ 200%** trước khi chấp nhận box; kiểm bằng số bẫy loose / missing lọt ở vật nhỏ, mép ảnh (lần này lọt đúng 2 bẫy loại đó, mục tiêu 0).
 
 ## 5. Mask SAM cho 3 vật (Part 5)
 
@@ -73,9 +75,10 @@ Nếu Rework / Hold, việc cần làm tiếp: <<>>
 ## 8. Ghi chú cá nhân
 
 - **Dùng AI để làm bài**: dùng Claude (claude.ai)
+- **Part 4 có AI hỗ trợ** (thầy cho phép làm riêng): Claude đọc `traps_key.json` **trước khi tôi duyệt** và khoanh 12 bẫy trên ảnh; Claude soát 24 ảnh batch, đánh dấu box trùng / thừa / sai lớp / bỏ sót, tôi sửa trong CVAT theo đó và tự quyết các ca mơ hồ. Vì vậy tỉ lệ bắt bẫy và thời gian `batch_review` không phản ánh một lần tự duyệt. Claude cũng soạn nháp mục 2–4 từ `review_stats`; tôi đối chiếu từng số với `review_stats.md`.
 - Gold có bị nhiễm không: có, một phần. Lúc gán tay 4 ảnh gold tôi không xem pre-label. Sau khi chạy `threshold_sweep` lần đầu (person chỉ đạt recall tối đa 71%), nhờ phân tích so khớp tôi biết được các box gold mà máy "sót" và đã sửa: (1) img_012 chiếc SUV bị cắt mép trên gán nhầm `person` → đổi thành `car`; (2) img_036 `ignore_region` phủ lên 3 người đã vẽ riêng → thu nhỏ vùng ignore, giữ các người; (3) tick `can_review` cho người lái tuk-tuk img_012. Trong lúc sửa tôi lỡ đổi xe bán tải img_001 từ `car` sang `truck` theo nhãn máy, sau đó đổi lại `car` theo guideline mục 2 (ví dụ thiên kiến tự động hóa của chính tôi). Các sửa đổi dựa trên ảnh gốc và guideline v1.0, nhưng việc biết chỗ cần xem đến từ kết quả máy, nên số đo máy trên gold có thể lạc quan hơn.
 - Máy / GPU / CVAT dùng: Windows, NVIDIA RTX 4050 Laptop 6 GB (CUDA), Python 3.13, torch 2.6.0+cu124, ultralytics 8.4.215, CVAT v2.81.0 chạy Docker. Vướng mắc: PowerShell chặn `Activate.ps1` (sửa bằng `Set-ExecutionPolicy -Scope Process Bypass`); tài khoản CVAT cũ đã tồn tại nên dùng lại.
 - Dùng cache `data/cache/` thay vì tự chạy? Không, tự chạy toàn bộ trên GPU máy mình.
 - Lỗi / bug script đã gặp (nếu có): không gặp bug script.
-- Thời gian: Part 1 quên bấm đồng hồ; `gold_manual` ghi theo mốc nhớ lại (18:50–19:05), không phải số đo bằng đồng hồ.
+- Thời gian: quên bấm đồng hồ ở cả Part 1 và Part 4. `gold_manual` ghi theo mốc nhớ lại (18:50–19:05); `batch_review` ước lượng từ mốc mở Job (10:21) đến lúc xong (11:58), trừ ~10 phút chờ AI. Cả hai không phải số đo bằng đồng hồ.
 - Một điều bạn làm khác lần sau: <<>>

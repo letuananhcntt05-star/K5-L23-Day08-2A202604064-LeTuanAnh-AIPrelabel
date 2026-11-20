@@ -1,2 +1,3 @@
 step,images,minutes,note
 gold_manual,4,15,"không bấm đồng hồ; ghi theo mốc nhớ lại 18:50-19:05"
+batch_review,24,87,"KHÔNG bấm đồng hồ (quên); ước lượng từ mốc 10:21 mở Job đến 11:58 xong, trừ ~10 phút chờ AI; AI (Claude) đánh dấu lỗi và bẫy trước, tôi sửa trong CVAT"
