@@ -5,7 +5,7 @@
 - Lớp (L2 / L3 / khác): L2B
 - Tài khoản GitHub: letuananhcntt05-star
 - Repo bài nộp (URL): https://github.com/letuananhcntt05-star/K5-L23-Day08-2A202604064-LeTuanAnh-AIPrelabel
-- Commit chốt bài (hash): (điền cuối bài)
+- Commit chốt bài (hash): 7b854a3192411b83f23ea3697c968086b61b88dc
 - Máy: Windows, NVIDIA GeForce RTX 4050 Laptop GPU 6 GB (CUDA, torch 2.6.0+cu124)
 - CVAT (Docker): v2.81.0
 
